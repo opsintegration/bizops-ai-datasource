@@ -29,29 +29,8 @@ class Database():
         self.disconnect()
         return result
     
-    def execute(self, query): 
-        self.cur.execute(query)
-
-    def commit(self):         
-        self.conn.commit()
-
     def disconnect(self):     
         self.conn.close()
-
-    def query_commit(self, query):
-        if self.connect_open() == "OK":                
-            self.execute(query)
-            self.commit()
-            self.disconnect()
-        else:
-            print("...CONNECTION FAILURE...")      
-
-    def query_result(self, query):
-        if self.connect_open() == "OK":
-            result = self.execute_QUERY(query)
-            return result[0][0] if result else None
-        else:
-            print("...CONNECTION FAILURE...")          
 
     def query_result_list(self, query):
         if self.connect_open() == "OK":
