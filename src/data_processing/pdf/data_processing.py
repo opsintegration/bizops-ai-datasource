@@ -2,7 +2,14 @@ from repository.params import DATA_BASE_CONFIG
 from sqlalchemy import create_engine
 from playwright.sync_api import sync_playwright
 from repository.database import Database
-import time, os, boto3
+import time, os, boto3, logging
+
+log = logging.getLogger('data_processing')
+log.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch = logging.StreamHandler()
+ch.setFormatter(formatter)
+log.addHandler(ch)
 
 bizops_host       = DATA_BASE_CONFIG["bizops"]["bizops_host"]
 bizops_user       = DATA_BASE_CONFIG["bizops"]["bizops_user"]
@@ -76,23 +83,47 @@ class PageController():
 
                 for dropdown in dropdowns:
                     button_path = dropdown[2]
+                    time.sleep(2)                    
                     try:
                         page.wait_for_selector(button_path, timeout=10000)
                         page.click(button_path)
                         page.wait_for_timeout(3000)                        
                         time.sleep(2)                
                     except Exception as e:
-                        print(f"Error clicking dropdown: {e}")         
+                        print(f"Error clicking dropdown {button_path} : {e}")         
                 
             page.pdf(path=os.path.join(self.download_dir, f'{description}.pdf'))
             time.sleep(3)
         except Exception as e:
-            print(f"An error occurred: {e}")            
-    
-    def __process_pages(self, theme_id:int = None):
-        query = 'select id, theme_id, description, url, updated_date, has_dropdown from ai.page_control'
-        if theme_id: query = f'{query} where theme_id = {theme_id}'
+            print(f"An error occurred: {e}")    
 
+    # def __download_page_as_html(self, description, page, url):
+    #     print(f'...... Processing page to pdf and downloading: {description} ')
+    #     try:
+    #         download_dir = self.download_dir
+    #         file_name = 'downloaded_page.html'
+    #         file_path = os.path.join(download_dir, file_name)
+
+    #         page.goto(url, timeout=60000)
+    #         time.sleep(3)
+    #         page.wait_for_load_state("networkidle")
+            
+    #         with open(file_path, 'w', encoding='utf-8') as file_handle:
+    #             file_handle.write(page.content())
+    #         time.sleep(3)
+    #         print(f".... File downloaded: {file_path}")
+
+    #     except Exception as e:
+    #         print(f"Error clicking dropdown: {e}")
+    
+    def __process_google_sites_doc(self, theme_id:int = None):
+
+        query = 'select id, theme_id, description, url, updated_date, has_dropdown from ai.page_control'
+        if theme_id: 
+            query = f'{query} where theme_id = {theme_id} and'
+        elif not theme_id: 
+            query = f'{query} where'
+        query = f'{query} active is true order by id asc;'
         db = Database('bizops')
         pages_list = db.query_result_list(query)              
 
@@ -106,6 +137,7 @@ class PageController():
                     has_dropdown = single_page[5]
 
                     self.__download_page_as_pdf(description, page, url, has_dropdown)
+                    # self.__download_page_as_html(description, page, url)
 
             if browser and playwright:
                 self.__close_browser(browser, playwright)
@@ -191,8 +223,8 @@ class PageController():
         except Exception as e:
             raise Exception(f"Error sending file to AWS S3: {e}")
 
-    def scrap_datasource(self, theme_id:int = None):
-        self.__process_pages(theme_id)            
+    def process_google_sites_doc(self, theme_id:int = None):
+        self.__process_google_sites_doc(theme_id)            
 
     def process_file_to_storage(self):        
         self.__list_files_and_send_to_s3()

@@ -1,7 +1,8 @@
 import os
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
+# load_dotenv('creds_local.env')
 
-load_dotenv('creds.env')
+
 bizops_host       = os.getenv("BIZOPS_HOST")
 bizops_user       = os.getenv("BIZOPS_DB_USER")
 bizops_password   = os.getenv("BIZOPS_DB_PASSWORD")
