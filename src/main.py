@@ -13,20 +13,23 @@ def run_process():
     try:
         ai = PageController()
         
-        print("Starting Google Sites document processing...")
+        log.info("Starting Google Sites document processing...")
         ai.process_google_sites_doc()
         
-        print("Processing file to storage...")
+        log.info("Processing file to storage...")
         ai.process_file_to_storage()
         
-        print("Cleaning local files...")
+        log.info("Cleaning local files...")
         ai.clean_local_files()
         
-        print("Process completed successfully.")
+        log.info("Process completed successfully.")
 
     except Exception as e:
         error_message = f"Docs Source For AI Job Error:\n{str(e)}\n\nTraceback:\n{traceback.format_exc()}"
-        print(error_message)
+        log.info(error_message)
         pc = EmailController()
         
         pc.send_error_email(subject="AI DOCS SOURCE JOB - Integration Errors Warning", body=error_message)
+
+if __name__ == "__main__":
+    run_process()

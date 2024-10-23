@@ -1,14 +1,16 @@
-# bizops-ai
+# bizops-ai-datasource
 
+# Build the Docker image
 docker build -t bizops-ai-datasource .
 
-docker run --env-file creds.env -it --entrypoint /bin/bash bizops-ai-datasource
+# Run the Docker container
+container_id=$(docker run -d --name bizops-ai-datasource bizops-ai-datasource)
 
-docker run --env-file creds.env -it bizops-ai-datasource
+# Wait for the container to finish
+docker wait $container_id
 
-docker run -e TZ=America/Sao_Paulo --name bizops-ai-datasource bizops-ai-datasource
+# Remove the container
+docker rm -f $container_id
 
-docker logs -f bizops-ai-datasource
-
-# export $(grep -v '^#' creds.env | sed "s/^'\(.*\)'$/\1/;s/^\(.*\)='\(.*\)'/\1=\2/" | xargs)
-# apt install vim -y
+# Optionally, remove the image, don't put in airflow
+docker rmi bizops-ai-datasource

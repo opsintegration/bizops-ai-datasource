@@ -29,7 +29,7 @@ class PageController():
         try:
             if browser: browser.close()
             if playwright: playwright.stop()
-        except Exception as e: print(f".... Error during cleanup: {e}")
+        except Exception as e: log.info(f".... Error during cleanup: {e}")
 
     def __start_driver(self):
         playwright = sync_playwright().start()
@@ -45,27 +45,27 @@ class PageController():
             page.goto(url, timeout=60000)
             time.sleep(3)
 
-            print('.... Entering username')
+            log.info('.... Entering username')
             page.wait_for_selector('//*[@id="identifierId"]', timeout=30000).fill(self.ops_mail)
 
-            print('.... Click Next after entering username')
+            log.info('.... Click Next after entering username')
             page.click('//*[@id="identifierNext"]')
             time.sleep(3)
 
-            print('.... Entering password')
+            log.info('.... Entering password')
             page.wait_for_selector('//*[@id="password"]', timeout=10000).fill(self.ops_mail_password)
 
-            print('.... Click Next after entering password')
+            log.info('.... Click Next after entering password')
             page.click('//*[@id="passwordNext"]')
             time.sleep(5)
             # page.screenshot(path=os.path.join(self.download_dir, 'screenshot.png'), full_page=True)                    
             return page, browser, playwright
         except Exception as e:
-            print(f"An error occurred: {e}")
+            log.info(f"An error occurred: {e}")
         
     def __download_page_as_pdf(self, description, page, url, has_dropdown):
         try: 
-            print(f'...... Processing page to pdf and downloading: {description} ')
+            log.info(f'...... Processing page to pdf and downloading: {description} ')
             page.goto(url, timeout=60000)
             time.sleep(3)
             
@@ -83,15 +83,15 @@ class PageController():
                         page.wait_for_timeout(3000)                        
                         time.sleep(2)                
                     except Exception as e:
-                        print(f"Error clicking dropdown {button_path} : {e}")         
+                        log.info(f"Error clicking dropdown {button_path} : {e}")         
                 
             page.pdf(path=os.path.join(self.download_dir, f'{description}.pdf'))
             time.sleep(3)
         except Exception as e:
-            print(f"An error occurred: {e}")    
+            log.info(f"An error occurred: {e}")    
 
     # def __download_page_as_html(self, description, page, url):
-    #     print(f'...... Processing page to pdf and downloading: {description} ')
+    #     log.info(f'...... Processing page to pdf and downloading: {description} ')
     #     try:
     #         download_dir = self.download_dir
     #         file_name = 'downloaded_page.html'
@@ -104,10 +104,10 @@ class PageController():
     #         with open(file_path, 'w', encoding='utf-8') as file_handle:
     #             file_handle.write(page.content())
     #         time.sleep(3)
-    #         print(f".... File downloaded: {file_path}")
+    #         log.info(f".... File downloaded: {file_path}")
 
     #     except Exception as e:
-    #         print(f"Error clicking dropdown: {e}")
+    #         log.info(f"Error clicking dropdown: {e}")
     
     def __process_google_sites_doc(self, theme_id:int = None):
 
@@ -134,7 +134,7 @@ class PageController():
 
             if browser and playwright:
                 self.__close_browser(browser, playwright)
-                print(".... Browser and Playwright closed successfully.")
+                log.info(".... Browser and Playwright closed successfully.")
 
     def __list_files_and_send_to_s3(self):
         folder_path = self.download_dir
@@ -146,35 +146,35 @@ class PageController():
                 file_name = file_name.lower()
                 doc_name = self.__get_file_name(file_name)
 
-                print(f'........ Sending {doc_name} to s3 folder: {file_name}')
+                log.info(f'........ Sending {doc_name} to s3 folder: {file_name}')
                 self.__send_files_to_s3(file_name, file_extension, doc_name)
                 
         except FileNotFoundError:
-            print(f"Folder '{folder_path}' not found.")
+            log.info(f"Folder '{folder_path}' not found.")
 
     def __clean_local_files(self):
         folder_path = self.download_dir
         try:
             files = os.listdir(folder_path)
-            print(f'.... Listing files: \n   {files}')
+            log.info(f'.... Listing files: \n   {files}')
 
             for file in files:
                 file_path = os.path.join(folder_path, file)
                 if os.path.isfile(file_path):
                     os.remove(file_path)
-                    print(f"Deleted: {file_path}")
+                    log.info(f"Deleted: {file_path}")
 
         except FileNotFoundError:
-            print(f"Folder '{folder_path}' not found.")
+            log.info(f"Folder '{folder_path}' not found.")
 
     def __format_file_name(self, file_name: str) -> str:
         try:
             formatted_name = file_name.replace(' ', '_').lower()
             return formatted_name
         except AttributeError as e:
-            print(f"Error formatting file name: {e} - Ensure that file_name is a string.")
+            log.info(f"Error formatting file name: {e} - Ensure that file_name is a string.")
         except Exception as e:
-            print(f"An unexpected error occurred: {e}")
+            log.info(f"An unexpected error occurred: {e}")
 
     def __get_file_name(self, description):
         query = f"SELECT DISTINCT pt.description FROM ai.page_theme pt JOIN ai.page_control pc ON pt.id = pc.theme_id WHERE LOWER(pc.description) = LOWER('{description}');"
@@ -188,9 +188,9 @@ class PageController():
             else:
                 raise ValueError(f"No result found for description: {description}")
         except (IndexError, ValueError) as e:
-            print(f"Error retrieving file name: {e}")
+            log.info(f"Error retrieving file name: {e}")
         except Exception as e:
-            print(f"An unexpected error occurred: {e}")
+            log.info(f"An unexpected error occurred: {e}")
 
     def __send_files_to_s3(self, file_name, file_extension, doc_name, retries=5, wait_time=10):
         folder_path = self.download_dir
@@ -199,7 +199,7 @@ class PageController():
         attempt = 0
 
         while not os.path.exists(s3_file_path) and attempt < retries:
-            print(f"........ Waiting for file {file_name} to appear .... attempt {attempt + 1}/{retries}")
+            log.info(f"........ Waiting for file {file_name} to appear .... attempt {attempt + 1}/{retries}")
             time.sleep(wait_time)
             attempt += 1
 
@@ -211,7 +211,7 @@ class PageController():
             with open(s3_file_path, 'rb') as f:
                 s3_key = f'{doc_name}/{file_name}'
                 s3_client.upload_fileobj(f, self.bucket_name, s3_key)
-            print(f"........ File '{s3_file_path}' uploaded to S3 bucket under '{s3_key}'")
+            log.info(f"........ File '{s3_file_path}' uploaded to S3 bucket under '{s3_key}'")
 
         except Exception as e:
             raise Exception(f"Error sending file to AWS S3: {e}")
