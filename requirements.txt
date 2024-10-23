@@ -1,4 +1,6 @@
 boto3==1.35.43
+cryptography==43.0.3
+Flask==3.0.3
 playwright==1.47.0
 psycopg2-binary==2.9.10
 python-dotenv==1.0.1

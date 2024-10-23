@@ -11,18 +11,11 @@ RUN apt-get update && \
 
 # Copy the requirements file to the container
 COPY requirements.txt .
-
-# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Node.js and npm using NodeSource repository
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs
-
-# Verify the installation of node and npm
 RUN node -v && npm -v
-
-# Install Playwright and additional system dependencies for running browsers
 RUN npm install -g playwright && \
     apt-get update && \
     apt-get install -y \
@@ -45,25 +38,9 @@ RUN npm install -g playwright && \
         libicu67 \
         libvpx6 \
         libevent-2.1-7
-
-# Install Playwright browsers
 RUN PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright/ playwright install --with-deps
-
-# Copy the rest of the application code
 COPY src/ ./src/
-COPY creds.env .
-
-# Copy the entrypoint script
-COPY entrypoint.sh /app/entrypoint.sh
-
-# Make the entrypoint script executable
-RUN chmod +x /app/entrypoint.sh
-
-# Load environment variables from creds.env
-RUN export $(grep -v '^#' creds.env | xargs)
-
-# Set the entrypoint to the script
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENV RESOURCE_KEY="JeSnITNJJS1iygvz6tq6i-DRgROI513Gy2BnjyZLcjE="
 
 # Set the command to run your application
 CMD ["python", "src/main.py"]

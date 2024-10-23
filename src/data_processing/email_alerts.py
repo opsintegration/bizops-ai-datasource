@@ -9,6 +9,8 @@ class EmailController:
         self.ai = PageController()
 
     def send_error_email(self, subject, body):
+        print(ops_mail)
+        print(ops_mail_password)
         ops_mail = self.ai.ops_mail()
         ops_mail_password = self.ai.ops_mail_password()
 

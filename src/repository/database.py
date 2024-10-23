@@ -1,7 +1,6 @@
 import psycopg2
 import logging
-from psycopg2 import Error
-from repository.params import DATA_BASE_CONFIG
+from config.config import APPConfig
 
 log = logging.getLogger('database')
 log.setLevel(logging.DEBUG)
@@ -10,18 +9,15 @@ ch = logging.StreamHandler()
 ch.setFormatter(formatter)
 log.addHandler(ch)
 
-bizops_host = DATA_BASE_CONFIG["bizops"]["bizops_host"]
-bizops_user = DATA_BASE_CONFIG["bizops"]["bizops_user"]
-bizops_password = DATA_BASE_CONFIG["bizops"]["bizops_password"]
-
 class Database():
     def __init__(self, connection_name):
+        self.app_config      = APPConfig()
+        self.bizops_host     = self.app_config.BIZOPS_HOST         
+        self.bizops_user     = self.app_config.BIZOPS_DB_USER      
+        self.bizops_password = self.app_config.BIZOPS_DB_PASSWORD  
         self.connection_name = connection_name
-        self.bizops_host = bizops_host
-        self.bizops_user = bizops_user
-        self.bizops_password = bizops_password
-        self.conn = None
-        self.cur = None
+        self.conn            = None
+        self.cur             = None
 
     def connect_open(self):
         try:

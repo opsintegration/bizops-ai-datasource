@@ -30,7 +30,3 @@ def run_process():
         pc = EmailController()
         
         pc.send_error_email(subject="AI DOCS SOURCE JOB - Integration Errors Warning", body=error_message)
-
-
-if __name__ == "__main__":
-    run_process()

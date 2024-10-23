@@ -1,8 +1,8 @@
-from repository.params import DATA_BASE_CONFIG
 from sqlalchemy import create_engine
 from playwright.sync_api import sync_playwright
 from repository.database import Database
 import time, os, boto3, logging
+from config.config import APPConfig
 
 log = logging.getLogger('data_processing')
 log.setLevel(logging.DEBUG)
@@ -11,26 +11,19 @@ ch = logging.StreamHandler()
 ch.setFormatter(formatter)
 log.addHandler(ch)
 
-bizops_host       = DATA_BASE_CONFIG["bizops"]["bizops_host"]
-bizops_user       = DATA_BASE_CONFIG["bizops"]["bizops_user"]
-bizops_password   = DATA_BASE_CONFIG["bizops"]["bizops_password"]
-ops_mail          = DATA_BASE_CONFIG["bizops"]["ops_mail"]
-ops_mail_password = DATA_BASE_CONFIG["bizops"]["ops_mail_password"]
-s3_access_key_id  = DATA_BASE_CONFIG["bizops"]["s3_access_key_id"] 
-s3_secret_access_key = DATA_BASE_CONFIG["bizops"]["s3_secret_access_key"]     
-
 class PageController():
     def __init__(self):
-        self.bizops_host = bizops_host       
-        self.bizops_user = bizops_user       
-        self.bizops_password = bizops_password   
-        self.ops_mail = ops_mail          
-        self.ops_mail_password = ops_mail_password 
+        self.app_config = APPConfig()
+        self.bizops_host          = self.app_config.BIZOPS_HOST         
+        self.bizops_user          = self.app_config.BIZOPS_DB_USER      
+        self.bizops_password      = self.app_config.BIZOPS_DB_PASSWORD  
+        self.ops_mail             = self.app_config.OPS_MAIL            
+        self.ops_mail_password    = self.app_config.OPS_MAIL_PASSWORD   
+        self.s3_access_key_id     = self.app_config.S3_ACCESS_KEY_ID    
+        self.s3_secret_access_key = self.app_config.S3_SECRET_ACCESS_KEY        
         self.engine = create_engine(f'postgresql+psycopg2://{self.bizops_user}:{self.bizops_password}@{self.bizops_host}/bizops')
         self.download_dir = os.path.join(os.getcwd(), 'src', 'downloads')
         self.bucket_name = 'bizops-ai'
-        self.s3_access_key_id = s3_access_key_id
-        self.s3_secret_access_key = s3_secret_access_key
         
     def __close_browser(self, browser, playwright):
         try:
